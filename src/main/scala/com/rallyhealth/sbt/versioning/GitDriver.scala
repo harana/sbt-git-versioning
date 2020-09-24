@@ -3,6 +3,8 @@ package com.rallyhealth.sbt.versioning
 import java.io.File
 
 import sbt.util._
+
+import scala.annotation.tailrec
 import scala.sys.process._
 
 /**
@@ -122,13 +124,40 @@ class GitDriverImpl(dir: File) extends GitDriver {
     }
   }
 
+  private def dropDuplicatedCommit(data: Seq[(GitCommit, ReleaseVersion)]): Seq[(GitCommit, ReleaseVersion)] = {
+    val ret = Seq.newBuilder[(GitCommit, ReleaseVersion)]
+
+    data match {
+      case head +: tail =>
+        var (currentHash, currentVersion) = head
+        tail.foreach { case (nextHash, nextVersion) =>
+          if (nextHash.fullHash == currentHash.fullHash) {
+            if (currentVersion < nextVersion)
+              currentVersion = nextVersion
+          } else {
+            ret += currentHash -> currentVersion
+            currentHash = nextHash
+            currentVersion = nextVersion
+          }
+        }
+        ret += currentHash -> currentVersion
+      case _ =>
+    }
+
+    ret.result()
+  }
+
   override val branchState: GitBranchState = {
     gitLog("--max-count=1").headOption match {
 
       case Some(headCommit) =>
 
         // we only care about the RELEASE commits so let's get them in order from reflog
-        val releaseRefs: Seq[(GitCommit, ReleaseVersion)] = gitForEachRef("").collect { case gc @ ReleaseVersion(rv) => (gc, rv) }
+        val releaseRefs: Seq[(GitCommit, ReleaseVersion)] =
+          dropDuplicatedCommit(
+            gitForEachRef("")
+              .collect { case gc @ ReleaseVersion(rv) => (gc, rv) }
+          )
 
         // We only care about the current release and previous release so let's take the top two.
         // Then we want to find out what which git log commit is associated to the reflog sha.

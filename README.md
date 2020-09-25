@@ -1,37 +1,26 @@
+[ ![Download](https://api.bintray.com/packages/hiyainc-oss/maven/sbt-git-versioning/images/download.svg) ](https://bintray.com/hiyainc-oss/maven/sbt-git-versioning/_latestVersion)
+
+This is a fork of [rallyhealth/sbt-git-versioning](https://github.com/rallyhealth/sbt-git-versioning). 
+SemVer plugin was removed to make it compatible with newer MiMa plugins.
+
 **sbt-git-versioning** is a suite of sbt plugins designed to make maintaining a simple, consistent, and accurate
  [semantic versioning](http://semver.org/spec/v2.0.0.html) scheme with as little manual labor as possible.
 
 There are two sbt plugins in this one plugin library:
 * [GitVersioningPlugin](#GitVersioningPlugin)
-* [SemVerPlugin](#SemVerPlugin)
-
-# Compatibility
-
-Tested and supported for sbt versions: 0.13.18 and 1.2.8. We don't currently support SBT 1.3.x because [there isn't a
-version of MiMa 0.3.0 built for SBT 1.3.x, only for 1.2.x and 0.13.x](https://github.com/lightbend/mima#usage).
 
 # Install
 
 1. Remove the `version := ...` directive from the project's `build.sbt` file
 2. Add the following code to `project/plugins.sbt` file (if you want to use Ivy style resolution):
 ```scala
-  resolvers += Resolver.bintrayIvyRepo("rallyhealth", "sbt-plugins")
-```
-Alternatively, you can add the following (if you want to use Maven style resolution):
-```scala
-  Resolver.bintrayRepo("rallyhealth", "sbt-plugins")
+  resolvers += Resolver.bintrayRepo("hiyainc-oss", "maven")
 ```
 In either case, you should now be able to add the plugin dependency to `project/plugins.sbt`:
 ```scala
-  addSbtPlugin("com.rallyhealth.sbt" % "sbt-git-versioning" % "x.y.z")
+  addSbtPlugin("com.hiya" % "sbt-git-versioning" % "x.y.z")
 ```
-3. Enable the SemVer plugin to enforce SemVer with MiMa. (Important for shared libraries, not so much for personal apps)
-
-```scala
-val example = project
-  .enablePlugins(SemVerPlugin)
-```
-4. Add a `gitVersioningSnapshotLowerBound` placeholder in build.sbt.
+3. Add a `gitVersioningSnapshotLowerBound` placeholder in build.sbt.
 ```sbt
 // Uncomment when you're ready to start building 1.0.0-...-SNAPSHOT versions.
 // gitVersioningSnapshotLowerBound in ThisBuild := "1.0.0"
@@ -193,47 +182,3 @@ You shouldn't do this without good reason. Version determination can be complica
 To add an extra identifier like "-alpha" or "-rc1" or "-rally" it must be included it in the version directly
 by overriding the "version" setting directly. (There was a feature to add those separately but it has been
 removed because it was never used. Feel free to re-add it.)
-
-# SemVerPlugin
-
-[SemVerPlugin](blob/master/src/main/scala/com/rallyhealth/sbt/semver/SemVerPlugin.scala)
-will halt the build (compile, publish, etc.) if your changes would not make a valid [semantic version](http://semver.org/spec/v2.0.0.html).
-The plugin checks the previous release, your changes, and the `semVerLimitRelease` to ensure your changes are really
-patch/minor/major changes if you want to release a patch/minor/major.
-
-## Usage
-
-You can run the check manually using `semVerCheck`. The check and also be run automatically:
-
-* *Compile* - If `semVerCheckOnCompile` is set to true (the default) it will check after you compile
-* *Test* - If `semVerCheckOnTest` is set to true (the default) it will check after you test
-* *Publish* - If `semVerCheckOnPublish` is set to true (the default) it will check **before** you publish
-* *PublishLocal* - If `semVerCheckOnPublish` is set to true (the default) it will check **before** you publishLocal
-
-When the SemVerPlugin halts the build it will look like:
-```
-[error] (api/*:semVerCheck) com.rallyhealth.sbt.semver.SemVerVersionTooLowException: Your changes have new functionality and binary incompatibilites which violates the http://semver.org rules for a Minor release.
-[error]
-[error] Specifically, MiMa detected the following binary incompatibilities:
-[error] (1/1) Backward -> method url(java.lang.String)com.rallyhealth.rq.v1.RqRequest in object com.rallyhealth.rq.v1.Rq does not have a correspondent in current version
-[error]
-[error] These changes would require a Major release instead (1.9.0 => 2.0.0).
-[error] You can adjust the version by adding the following setting:
-[error]   gitVersioningSnapshotLowerBound in ThisBuild := "2.0.0"
-[error] Total time: 0 s, completed Jul 13, 2018 3:49:57 PM
-```
-
-## Information
-
-SemverPlugin is built on top of [Typesafe's migration-manager tool](https://github.com/typesafehub/migration-manager).
-First it finds the previous version by looking at git history to find a previous tag (like GitVersioningPlugin).
-Then it uses that artifact as the baseline and compares against your changes.
-
-## Notes
-
-* [Semantic versioning](http://semver.org/#spec-item-4) is disabled for initial development versions (i.e. 0.x.y).
-
-* When adding a new sub-module within an existing module, be sure to add `semVerEnforceAfterVersion` in the sbt settings
- and that version is a minor update.
-
-    Example: Current tag is 1.3.4. Then the sbt sub-module settings should have `semVerEnforceAfterVersion := Some("1.4.0")`

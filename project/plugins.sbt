@@ -1,6 +1,4 @@
-resolvers += Resolver.url(
-  "Rally Plugin Releases",
-  url("https://dl.bintray.com/rallyhealth/sbt-plugins"))(Resolver.ivyStylePatterns)
-
-addSbtPlugin("com.rallyhealth.sbt" % "sbt-git-versioning" % "1.3.0")
-addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.5.4")
+addSbtPlugin("com.codecommit" % "sbt-github-actions" % "0.14.2")
+addSbtPlugin ("com.codecommit" % "sbt-github-packages" % "0.5.3")
+Compile / unmanagedSourceDirectories += new File("src/main/scala")
+libraryDependencies += "se.sawano.java" % "alphanumeric-comparator" % "1.4.1"

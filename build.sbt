@@ -3,10 +3,16 @@ import sbt.plugins.SbtPlugin
 name := "sbt-git-versioning"
 organization := "com.hiya"
 
-licenses := Seq("MIT" -> url("http://opensource.org/licenses/MIT"))
+ThisBuild / versionScheme := Some("early-semver")
 
-bintrayOrganization := Some("rallyhealth")
-bintrayRepository := "sbt-plugins"
+
+ThisBuild / githubOwner := "hiyainc-oss"
+ThisBuild / githubRepository := "sbt-git-versioning"
+
+ThisBuild / githubWorkflowTargetTags ++= Seq("v*")
+ThisBuild / githubWorkflowPublishTargetBranches := Seq(RefPredicate.StartsWith(Ref.Tag("v")))
+
+licenses := Seq("MIT" -> url("http://opensource.org/licenses/MIT"))
 
 // SbtPlugin requires sbt 1.2.0+
 // See: https://developer.lightbend.com/blog/2018-07-02-sbt-1-2-0/#sbtplugin-for-plugin-development
@@ -21,26 +27,14 @@ scalacOptions ++= {
   }
   Seq("-Xfatal-warnings", linting)
 }
-
 crossSbtVersions := List("1.2.8")
-
 publishMavenStyle := true
-
-//resolvers += Resolver.bintrayRepo("typesafe", "sbt-plugins")
-
 libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.5" % Test,
   "se.sawano.java" % "alphanumeric-comparator" % "1.4.1"
 )
 
 // disable scaladoc generation
-sources in(Compile, doc) := Seq.empty
+Compile / doc / sources := Seq.empty
+packageDoc / publishArtifact := false
 
-publishArtifact in packageDoc := false
-
-licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
-bintrayRepository := "maven"
-bintrayOrganization := Some("hiyainc-oss")
-bintrayReleaseOnPublish in ThisBuild := false
-resolvers += Resolver.bintrayRepo("hiyainc-oss", "maven")
-bintrayPackageLabels := Seq("scala", "sbt")

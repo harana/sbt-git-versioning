@@ -1,12 +1,12 @@
 import sbt.plugins.SbtPlugin
 
 name := "sbt-git-versioning"
-organization := "com.hiya"
+organization := "com.harana"
 
 ThisBuild / versionScheme := Some("early-semver")
 
 
-ThisBuild / githubOwner := "hiyainc-oss"
+ThisBuild / githubOwner := "harana"
 ThisBuild / githubRepository := "sbt-git-versioning"
 
 ThisBuild / githubWorkflowTargetTags ++= Seq("v*")
